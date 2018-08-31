@@ -10,7 +10,12 @@ redisClient = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 while True:
   sleep(randint(1,5))
-  productId = redisClient.rpop("crawl_queue")
+  productInfo = redisClient.rpop("crawl_queue")
+  splitted = productInfo.split(":")
+
+  productCategory = splitted[0]
+  productId = splitted[1]
+
   print 'My product Id = ', productId
   ua = UserAgent()
   randomAgent = ua.random
@@ -24,7 +29,7 @@ while True:
 
   try:
     totalJson = requests.get(productUrl, headers=headers, timeout=5).json()
-    redisClient.set("product:" + productId, totalJson)
+    redisClient.set("product" + ":" + productId + ":" + productCategory, totalJson)
   except Exception as e:
     print "Error getting ", productUrl
     print e
