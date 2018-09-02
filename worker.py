@@ -29,7 +29,7 @@ while True:
 
   try:
     totalJson = requests.get(productUrl, headers=headers, timeout=5).json()
-    redisClient.set("product" + ":" + productId + ":" + productCategory, totalJson)
+    redisClient.set("product" + ":" + productId + ":" + productCategory, json.dumps(totalJson))
   except Exception as e:
     print "Error getting ", productUrl
     print e
