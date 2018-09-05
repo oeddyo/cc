@@ -44,7 +44,6 @@ fieldnames = ["Handle", "Title", "Body (HTML)", "Vendor", "Type", "Tags", "Publi
 
 
 redisClient = redis.StrictRedis(host='localhost', port=6379, db=0)
-#redisClient = redis.StrictRedis(host='13.233.26.155', port=6379, db=0, password="redis_micro_xiekaike_1989")
 
 bad = 0
 good = 1
