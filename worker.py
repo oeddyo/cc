@@ -26,10 +26,14 @@ while True:
   }
 
   productUrl = "https://www.clubfactory.com/v1/product/{}".format(productId)
+  reviewUrl = "https://m.clubfactory.com/api/v2/review/product?product_id={}&rank_type=rating&limit=100&offset=0&self_first=0&filter_rating=0&need_average_and_count=1".format(productId)
 
   try:
-    totalJson = requests.get(productUrl, headers=headers, timeout=5).json()
-    redisClient.set("product" + ":" + productId + ":" + productCategory, json.dumps(totalJson))
+    productJson = requests.get(productUrl, headers=headers, timeout=5).json()
+    redisClient.set("product" + ":" + productId + ":" + productCategory, json.dumps(productJson))
+
+    reviewJson = requests.get(reviewUrl, headers=headers, timeout=5).json()
+    redisClient.set("review" + ":" + productId, json.dumps(reviewJson))
   except Exception as e:
     print "Error getting ", productUrl
     print e

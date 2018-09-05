@@ -17,7 +17,6 @@ def filterValidTags(tags):
   return list(res)
 
 def generateHTML(content):
-  print "content = ", content
   if not content:
     return ""
   res = "<table>"
@@ -31,10 +30,13 @@ def generateHTML(content):
     else:
       value = ""
 
-    res += "<tr>"
-    res += '<td class="description-key">' + key + "</td>"
-    res += '<td class="description-value">' + value + "</td>"
-    res += "</tr>"
+    try:
+      res += "<tr>"
+      res += '<td class="description-key">' + key + "</td>"
+      res += '<td class="description-value">' + value + "</td>"
+      res += "</tr>"
+    except:
+      res += ""
   res += "</table>"
   return res
 
@@ -42,50 +44,38 @@ fieldnames = ["Handle", "Title", "Body (HTML)", "Vendor", "Type", "Tags", "Publi
 
 
 redisClient = redis.StrictRedis(host='localhost', port=6379, db=0)
+#redisClient = redis.StrictRedis(host='13.233.26.155', port=6379, db=0, password="redis_micro_xiekaike_1989")
 
-
-
+bad = 0
+good = 1
 with open('large.csv', mode='w') as csv_file:
   writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
   writer.writeheader()
 
+  cnt = 0
   for key in redisClient.scan_iter("product:*"):
-    print key
     category = key.split(":")[2]
 
     tmp = redisClient.get(key)
-    print tmp
-    jsonString = tmp.replace("'", '"')
-    print "after replace"
-    print jsonString
-    jsonString = jsonString.replace('u"', '"')
-    jsonString = jsonString.replace("True", "true")
-    jsonString = jsonString.replace("False", "false")
-    print 'OK'
-    print jsonString
-    print type(jsonString)
-    print type(json.loads(jsonString))
+    try:
+      data = json.loads(tmp)
+      good += 1
+    except Exception as e1:
+      bad += 1
+      print 'Bad = ', bad
+      print tmp
 
-    print "tmp = "
-    print tmp
-    print dict(tmp)
-    data = json.loads(key, encoding="utf-8")
-    print 'type of data = '
-    print type(data)
-    break
-
+    if(good % 100 == 0):
+      print good
     productInfo = data['product_info']
     skuInfo = data['sku_info']
 
-    print "----------------"
-
-    # handle
-    print "id = ", productInfo["id"]
-    print productInfo
+    #print "id = ", productInfo["id"]
+    #print productInfo
 
     imageIndex = 0
     for imageIndex, sku in enumerate(skuInfo):
-      print sku
+      #print sku
       # a row
       row = {}
       row['Handle'] = productInfo["id"]
@@ -100,7 +90,7 @@ with open('large.csv', mode='w') as csv_file:
 
       row['Published'] = True
       row['Variant Grams'] = 0.1
-      print sku['attribute_info']
+      #print sku['attribute_info']
       for comb in sku['attribute_info']:
         row['Variant Inventory Quantity'] = 10000
         row['Variant Inventory Policy'] = "deny"
@@ -126,7 +116,7 @@ with open('large.csv', mode='w') as csv_file:
         img = imgs[imageIndex]
         imgUrl = img['url'][2:]
         row['Image Src'] = "http://" + imgUrl
-        print "now row = ", row
+        #print "now row = ", row
       writer.writerow(row)
 
     for img in productInfo['product_images'][imageIndex+1:]:
